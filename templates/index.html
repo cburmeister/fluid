@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Movies{% endblock %}
+
+{% block body %}
+    {% if now_playing %}
+        <div id="now_playing">
+            <p>Now Playing...</p>
+            <h1>{{ now_playing.title }}</h1>
+            <div class="buttons">
+                {% with rule = 'play' if is_paused else 'pause' %}
+                    <a href="{{ url_for(rule) }}" class="btn">{{ rule|title }}</a>
+                {% endwith %}
+                <a href="{{ url_for('stop') }}" class="btn">Stop</a>
+            </div>
+        </div>
+    {% endif %}
+    <div id="grid">
+        {% for item in media %}
+            <a href="{{ item.urls.cast }}"><img src="{{ item.urls.poster }}"></img></a>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    {% with url = url_for('static', filename='style.css') %}
+        <link rel="stylesheet" type="text/css" href="{{ url }}" />
+    {% endwith %}
+</head>
+<body>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ category }}"><strong>{{ category|title }}!</strong> {{ message }}</div>
+    {% endfor %}
+    {% block body %}{% endblock %}
+</body>
+</html>
