@@ -4,7 +4,7 @@ List media from a directory and stream it to a Chromecast.
 from flask import Flask, flash, redirect, render_template, url_for
 from media import Media
 import mimetypes
-import optparse
+import argparse
 import os
 import partial_file
 import pychromecast
@@ -147,13 +147,13 @@ def media(filename):
 
 
 if __name__ == '__main__':
-    parser = optparse.OptionParser()
-    parser.add_option('--host', default='127.0.0.1')
-    parser.add_option('--port', default='5000', type=int)
-    options, _ = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', action='store_true', default=False)
+    parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--port', default='5000', type=int)
+    args = parser.parse_args()
     app.run(
-        host=options.host,
-        port=options.port,
-        debug=True,
-        threaded=True
+        host=args.host,
+        port=args.port,
+        debug=args.debug
     )
