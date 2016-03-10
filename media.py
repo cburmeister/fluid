@@ -55,5 +55,6 @@ class Media(object):
             'urls': {
                 'poster': self.poster_path,
                 'cast': url_for('cast', filename=self.filename),
+                'media': url_for('media', filename=self.filename, _external=True),
             }
         }

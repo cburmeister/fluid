@@ -75,7 +75,7 @@ def cast(filename):
 
     media = Media(filename)
     mimetype, _ = mimetypes.guess_type(filename)
-    chromecast.media_controller.play_media(media.url, mimetype)
+    chromecast.media_controller.play_media(media['urls']['media'], mimetype)
 
     time.sleep(6)
 
