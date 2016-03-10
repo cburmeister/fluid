@@ -1,5 +1,5 @@
 """
-List media from a directory and stream it to a Chromecast.
+Browse your local movies with IMDB data and stream them to a Chromecast.
 """
 from flask import Flask, flash, redirect, render_template, url_for
 from media import Media
@@ -147,7 +147,7 @@ def media(filename):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--debug', action='store_true', default=False)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', default='5000', type=int)
