@@ -73,7 +73,7 @@ def cast(filename):
             flash('Chromecast not found.', 'error')
             return redirect(url_for('index'))
 
-    media = Media(filename)
+    media = Media(filename).to_dict()
     mimetype, _ = mimetypes.guess_type(filename)
     chromecast.media_controller.play_media(media['urls']['media'], mimetype)
 
