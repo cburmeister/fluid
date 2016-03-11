@@ -3,8 +3,9 @@ Browse your local movies with IMDB data and stream them to a Chromecast.
 """
 from flask import Flask, flash, redirect, render_template, url_for
 from media import Media
-import mimetypes
+from werkzeug.urls import url_decode
 import argparse
+import mimetypes
 import os
 import partial_file
 import pychromecast
@@ -50,7 +51,8 @@ def index():
         if media_controller.is_paused or media_controller.is_playing:
             is_paused = media_controller.is_paused
 
-            filename = media_controller.status.content_id.split('/')[-1]
+            content_id = media_controller.status.content_id
+            filename = url_decode(content_id).keys()[0].split('/')[-1]
             now_playing = Media(filename).to_dict()
 
     return render_template(
