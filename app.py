@@ -13,13 +13,16 @@ import time
 
 app = Flask(__name__)
 app.config.update({
-    'CHROMECAST_NAME': os.environ['CHROMECAST_NAME'],
+    'CHROMECAST_IP': os.environ['CHROMECAST_IP'],
     'MEDIA_FORMATS': ('.mp4', '.mkv'),
     'MEDIA_PATH': os.environ['MEDIA_PATH'],
     'SECRET_KEY': os.environ['SECRET_KEY'],
 })
 
-chromecast = None  # Global containing a connection to the Chromecast device
+
+def get_chromecast():
+    """Returns a connection to the Chromecast."""
+    return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
 
 
 @app.route('/')
@@ -30,28 +33,25 @@ def index():
     media = [Media(x) for x in media]
     media = [x.to_dict() for x in media]
 
-    global chromecast
+    chromecast = get_chromecast()
     if not chromecast:
-        chromecast = pychromecast.get_chromecast(
-            friendly_name=app.config['CHROMECAST_NAME']
-        )
-        if not chromecast:
-            flash('Chromecast not found.', 'error')
+        flash('Chromecast not found.', 'error')
 
     now_playing = None
     is_paused = False
 
     if chromecast:
-        if chromecast.is_idle:
+        mc = chromecast.media_controller
+
+        time.sleep(1)
+
+        if mc.status.player_is_idle:
             flash('Chromecast is idle.', 'info')
 
-        chromecast.wait()
-        media_controller = chromecast.media_controller
+        if mc.status.player_is_paused or mc.status.player_is_playing:
+            is_paused = mc.status.player_is_paused
 
-        if media_controller.is_paused or media_controller.is_playing:
-            is_paused = media_controller.is_paused
-
-            content_id = media_controller.status.content_id
+            content_id = mc.status.content_id
             filename = url_decode(content_id).keys()[0].split('/')[-1]
             now_playing = Media(filename).to_dict()
 
@@ -66,14 +66,9 @@ def index():
 @app.route('/cast/<filename>')
 def cast(filename):
     """Casts the filename to a chromecast."""
-    global chromecast
+    chromecast = get_chromecast()
     if not chromecast:
-        chromecast = pychromecast.get_chromecast(
-            friendly_name=app.config['CHROMECAST_NAME']
-        )
-        if not chromecast:
-            flash('Chromecast not found.', 'error')
-            return redirect(url_for('index'))
+        return redirect(url_for('index'))
 
     media = Media(filename).to_dict()
     mimetype, _ = mimetypes.guess_type(filename)
@@ -87,18 +82,13 @@ def cast(filename):
 @app.route('/play')
 def play():
     """Resumes playback of the media on the Chromecast."""
-    global chromecast
+    chromecast = get_chromecast()
     if not chromecast:
-        chromecast = pychromecast.get_chromecast(
-            friendly_name=app.config['CHROMECAST_NAME']
-        )
-        if not chromecast:
-            flash('Chromecast not found.', 'error')
-            return redirect(url_for('index'))
-
-    chromecast.media_controller.play()
+        return redirect(url_for('index'))
 
     time.sleep(1)
+
+    chromecast.media_controller.play()
 
     return redirect(url_for('index'))
 
@@ -106,18 +96,13 @@ def play():
 @app.route('/pause')
 def pause():
     """Pauses playback of the media on the Chromecast."""
-    global chromecast
+    chromecast = get_chromecast()
     if not chromecast:
-        chromecast = pychromecast.get_chromecast(
-            friendly_name=app.config['CHROMECAST_NAME']
-        )
-        if not chromecast:
-            flash('Chromecast not found.', 'error')
-            return redirect(url_for('index'))
-
-    chromecast.media_controller.pause()
+        return redirect(url_for('index'))
 
     time.sleep(1)
+
+    chromecast.media_controller.pause()
 
     return redirect(url_for('index'))
 
@@ -125,18 +110,13 @@ def pause():
 @app.route('/stop')
 def stop():
     """Stops playback of the media on the Chromecast."""
-    global chromecast
+    chromecast = get_chromecast()
     if not chromecast:
-        chromecast = pychromecast.get_chromecast(
-            friendly_name=app.config['CHROMECAST_NAME']
-        )
-        if not chromecast:
-            flash('Chromecast not found.', 'error')
-            return redirect(url_for('index'))
-
-    chromecast.media_controller.stop()
+        return redirect(url_for('index'))
 
     time.sleep(1)
+
+    chromecast.media_controller.stop()
 
     return redirect(url_for('index'))
 

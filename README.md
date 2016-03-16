@@ -1,7 +1,8 @@
 fluid
 ===
 
-List media from a directory and stream it to a Chromecast.
+Browse your local movies with IMDB data and stream them to a Chromecast.
+
 
 ![Fluid](static/images/sample.jpg)
 
@@ -20,14 +21,14 @@ Install the required python packages:
 $ pip install -r requirements.txt
 ```
 
-Export a couple required environment variables:
+Export a few required environment variables:
 ```bash
-$ export CHROMECAST_NAME=Bedroom
+$ export CHROMECAST_IP=10.0.0.72
 $ export MEDIA_PATH=/media/usbhdd/movies
 $ export SECRET_KEY=,n\xa7\xdfq\x08h\xb8\x8c\x8af.B\x93y*\xd3\xf5\x10;
 ```
 
 Run the server:
 ```bash
-$ python app.py --host 0.0.0.0
+$ python app.py --host 0.0.0.0 --port 5000 --debug
 ```
