@@ -45,15 +45,15 @@ def index():
 
         time.sleep(1)
 
-        if mc.status.player_is_idle:
-            flash('Chromecast is idle.', 'info')
-
-        if mc.status.player_is_paused or mc.status.player_is_playing:
+        if mc.status.player_is_playing or mc.status.player_is_paused:
             is_paused = mc.status.player_is_paused
-
-            content_id = mc.status.content_id
-            filename = url_decode(content_id).keys()[0].split('/')[-1]
+            filename = (
+                mc.status.title or
+                url_decode(mc.status.content_id).keys()[0].split('/')[-1]
+            )
             now_playing = Media(filename).to_dict()
+        else:
+            flash('Chromecast is idle.', 'info')
 
     return render_template(
         'index.html',
