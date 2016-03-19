@@ -7,6 +7,9 @@
     {% with url = url_for('static', filename='style.css') %}
         <link rel="stylesheet" type="text/css" href="{{ url }}" />
     {% endwith %}
+    {% with url = 'http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css' %}
+        <link rel="stylesheet" type="text/css" href="{{ url }}" />
+    {% endwith %}
 </head>
 <body>
     {% for category, message in get_flashed_messages(with_categories=true) %}

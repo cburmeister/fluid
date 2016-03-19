@@ -65,7 +65,7 @@ def index():
 
 @app.route('/cast/<filename>')
 def cast(filename):
-    """Casts the filename to a chromecast."""
+    """Cast the filename to a chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
         return redirect(url_for('index'))
@@ -81,7 +81,7 @@ def cast(filename):
 
 @app.route('/play')
 def play():
-    """Resumes playback of the media on the Chromecast."""
+    """Resume playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
         return redirect(url_for('index'))
@@ -95,7 +95,7 @@ def play():
 
 @app.route('/pause')
 def pause():
-    """Pauses playback of the media on the Chromecast."""
+    """Pause playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
         return redirect(url_for('index'))
@@ -109,7 +109,7 @@ def pause():
 
 @app.route('/stop')
 def stop():
-    """Stops playback of the media on the Chromecast."""
+    """Stop playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
         return redirect(url_for('index'))
@@ -117,6 +117,44 @@ def stop():
     time.sleep(1)
 
     chromecast.media_controller.stop()
+
+    return redirect(url_for('index'))
+
+
+@app.route('/forward')
+def forward():
+    """Seek forward through the media on the Chromecast."""
+    chromecast = get_chromecast()
+    if not chromecast:
+        return redirect(url_for('index'))
+
+    time.sleep(1)
+
+    duration = chromecast.media_controller.status.duration
+    current_time = chromecast.media_controller.status.current_time
+    batch_size = duration / 20
+    chromecast.media_controller.seek(current_time + batch_size)
+
+    time.sleep(6)
+
+    return redirect(url_for('index'))
+
+
+@app.route('/backward')
+def backward():
+    """Seek backward through the media on the Chromecast."""
+    chromecast = get_chromecast()
+    if not chromecast:
+        return redirect(url_for('index'))
+
+    time.sleep(1)
+
+    duration = chromecast.media_controller.status.duration
+    current_time = chromecast.media_controller.status.current_time
+    batch_size = duration / 20
+    chromecast.media_controller.seek(current_time - batch_size)
+
+    time.sleep(6)
 
     return redirect(url_for('index'))
 
