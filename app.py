@@ -118,6 +118,7 @@ def stop():
     time.sleep(1)
 
     chromecast.media_controller.stop()
+    chromecast.quit_app()
 
     return redirect(url_for('index'))
 
