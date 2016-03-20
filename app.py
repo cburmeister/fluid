@@ -21,7 +21,10 @@ app.config.update({
 
 def get_chromecast():
     """Returns a connection to the Chromecast."""
-    return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
+    try:
+        return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
+    except pychromecast.ChromecastConnectionError:
+        pass
 
 
 def get_media():
