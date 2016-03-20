@@ -14,7 +14,6 @@ import time
 app = Flask(__name__)
 app.config.update({
     'CHROMECAST_IP': os.environ['CHROMECAST_IP'],
-    'MEDIA_FORMATS': ('.mp4', '.mkv'),
     'MEDIA_PATH': os.environ['MEDIA_PATH'],
     'SECRET_KEY': os.environ['SECRET_KEY'],
 })
@@ -25,14 +24,16 @@ def get_chromecast():
     return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
 
 
+def get_media():
+    """Returns all available media."""
+    media = os.listdir(app.config['MEDIA_PATH'])
+    media = filter(lambda x: x.endswith(('.mp4', '.mkv')), media)
+    return [Media(x).to_dict() for x in media]
+
+
 @app.route('/')
 def index():
     """Returns all media within the directory."""
-    media = os.listdir(app.config['MEDIA_PATH'])
-    media = filter(lambda x: x.endswith(app.config['MEDIA_FORMATS']), media)
-    media = [Media(x) for x in media]
-    media = [x.to_dict() for x in media]
-
     chromecast = get_chromecast()
     if not chromecast:
         flash('Chromecast not found.', 'error')
@@ -58,7 +59,7 @@ def index():
     return render_template(
         'index.html',
         is_paused=is_paused,
-        media=media,
+        media=get_media(),
         now_playing=now_playing,
     )
 
