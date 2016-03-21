@@ -6,6 +6,7 @@ import json
 import omdb
 import os
 import requests
+import logging
 
 
 class Media(object):
@@ -25,27 +26,44 @@ class Media(object):
         self.data = self.get_data()
         self.get_poster()
 
+
+    def is_valid(self):
+        return bool(self.data)
+
+
     def get_data(self):
         """Download information about the media via OMDB."""
         if not os.path.exists(self.data_path):
-            response = omdb.request(t=self.query, y=self.year)
-            if response.status_code == 200:
-                data = response.json()
+            logging.debug('Loading data on {}'.format(self.filename))
+
+            response = omdb.request(t=self.query, y=self.year).json()
+            if response['Response'] == 'True':
                 with open(self.data_path, 'w') as f:
-                    json.dump(data, f)
-                return data
+                    json.dump(response, f)
+                return response
+            else:
+                logging.error(
+                    'Unable to load data for {}'.format(self.filename))
+                return {}
 
         with open(self.data_path) as f:
             return json.loads(f.read())
 
+
     def get_poster(self):
         """Download poster via IMDB."""
         if not os.path.exists(self.poster_path):
+            if not self.data or self.data['Poster'] == 'N/A':
+                logging.error(
+                    'Unable to find poster for {}'.format(self.filename))
+                return
+
             response = requests.get(self.data['Poster'], stream=True)
             if response.status_code == 200:
                 with open(self.poster_path, 'wb') as f:
                     for chunk in response:
                         f.write(chunk)
+
 
     def to_dict(self):
         """Return a dictionary representation of the media."""
@@ -55,6 +73,8 @@ class Media(object):
             'urls': {
                 'poster': self.poster_path,
                 'cast': url_for('cast', filename=self.filename),
-                'media': url_for('media', filename=self.filename, _external=True),
+                'media': url_for(
+                    'media', filename=self.filename, _external=True
+                ),
             }
         }

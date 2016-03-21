@@ -10,6 +10,12 @@ import os
 import partial_file
 import pychromecast
 import time
+import logging
+import logging.config
+import sys
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 app = Flask(__name__)
 app.config.update({
@@ -29,9 +35,12 @@ def get_chromecast():
 
 def get_media():
     """Returns all available media."""
-    media = os.listdir(app.config['MEDIA_PATH'])
-    media = filter(lambda x: x.endswith(('.mp4', '.mkv')), media)
-    return [Media(x).to_dict() for x in media]
+    valid_ext = ('.mp4', '.mkv', '.avi', '.m2ts', 'm4v')
+    files = os.listdir(app.config['MEDIA_PATH'])
+    files = filter(lambda x: x.endswith(valid_ext), files)
+
+    media = [Media(x) for x in files]
+    return [x.to_dict() for x in media if x.is_valid()]
 
 
 @app.route('/')
@@ -170,6 +179,35 @@ def media(filename):
     path = '{}/{}'.format(app.config['MEDIA_PATH'], filename)
     return partial_file.send(path)
 
+def init_logging():
+    config = {
+        'version': 1,
+        'formatters': {
+            'simple': {
+                'format': '%(asctime)s:%(levelname)s:%(module)s.py:%(lineno)d - %(message)s'
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'level': 'DEBUG',
+                'formatter': 'simple',
+                'stream': 'ext://sys.stderr'
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'level': 'INFO',
+                'formatter': 'simple',
+                'filename': 'fluid.log'
+            }
+        },
+        'root': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG'
+        }
+    }
+
+    logging.config.dictConfig(config)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
@@ -177,4 +215,6 @@ if __name__ == '__main__':
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', default='5000', type=int)
     args = parser.parse_args()
+    
+    init_logging()
     app.run(host=args.host, port=args.port, debug=args.debug)
