@@ -45,7 +45,7 @@ def get_chromecast():
     try:
         return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
     except pychromecast.ChromecastConnectionError:
-        pass
+        logging.error('Chromecast not found.')
 
 
 def get_media():
