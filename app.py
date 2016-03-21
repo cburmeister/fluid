@@ -25,18 +25,25 @@ app.config.update({
 })
 
 
-def setup_logging():
+def setup_logging(debug):
     """Setup logging for the application."""
+    logger = logging.getLogger()
+
+    # Describe format of logs
     log_format = str(
         '%(asctime)s:%(levelname)s:%(module)s.py:%(lineno)d - %(message)s'
     )
 
+    # Setup the StreamHandler to log to stderr
     logging.basicConfig(level=logging.DEBUG, format=log_format)
 
-    file_handler = logging.FileHandler(app.config['LOG_PATH'])
-    file_handler.setFormatter(logging.Formatter(log_format))
+    if debug:  # Logging to stderr is sufficient when debugging
+        return
 
-    logger = logging.getLogger()
+    # Setup a FileHandler to log to a configurable path
+    file_handler = logging.FileHandler(app.config['LOG_PATH'])
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
 
 
@@ -45,7 +52,7 @@ def get_chromecast():
     try:
         return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
     except pychromecast.ChromecastConnectionError:
-        pass
+        logging.error('Chromecast not found.')
 
 
 def get_media():
@@ -201,6 +208,6 @@ if __name__ == '__main__':
     parser.add_argument('--port', default='5000', type=int)
     args = parser.parse_args()
 
-    setup_logging()
+    setup_logging(args.debug)
 
     app.run(host=args.host, port=args.port, debug=args.debug)
