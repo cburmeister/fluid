@@ -26,10 +26,9 @@ class Media(object):
         self.data = self.get_data()
         self.get_poster()
 
-
+    @property
     def is_valid(self):
         return bool(self.data)
-
 
     def get_data(self):
         """Download information about the media via OMDB."""
@@ -49,7 +48,6 @@ class Media(object):
         with open(self.data_path) as f:
             return json.loads(f.read())
 
-
     def get_poster(self):
         """Download poster via IMDB."""
         if not os.path.exists(self.poster_path):
@@ -63,7 +61,6 @@ class Media(object):
                 with open(self.poster_path, 'wb') as f:
                     for chunk in response:
                         f.write(chunk)
-
 
     def to_dict(self):
         """Return a dictionary representation of the media."""
