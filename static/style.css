@@ -7,7 +7,7 @@ body {
     -moz-column-gap: 10px;
     -webkit-column-gap: 10px;
     column-gap: 10px;
-    line-height: 0;
+    line-height: normal;
 }
 #grid img {
     background-color: #fff;
