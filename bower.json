@@ -1,0 +1,22 @@
+{
+  "name": "fluid",
+  "homepage": "https://github.com/cburmeister/fluid",
+  "authors": [
+    "Corey Burmeister <burmeister.corey@gmail.com>",
+    "Derek Bolt <junglist88@gmail.com>"
+  ],
+  "description": "Browse your local movies with IMDB data and stream them to a Chromecast.",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "components-font-awesome": "^4.5.0"
+  }
+}

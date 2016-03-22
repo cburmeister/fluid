@@ -2,16 +2,17 @@
 Browse your local movies with IMDB data and stream them to a Chromecast.
 """
 from flask import Flask, flash, redirect, render_template, url_for
+from flask_bower import Bower
 from media import Media
 from werkzeug.urls import url_decode
 import argparse
+import logging
 import mimetypes
 import os
 import partial_file
 import pychromecast
-import time
-import logging
 import sys
+import time
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -23,6 +24,8 @@ app.config.update({
     'SECRET_KEY': os.environ['SECRET_KEY'],
     'LOG_PATH': os.environ.get('LOG_PATH', 'fluid.log'),
 })
+
+Bower(app)
 
 
 def setup_logging(debug):
