@@ -12,19 +12,33 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-app = Flask(__name__)
-app.config.update({
-    'CHROMECAST_IP': os.environ['CHROMECAST_IP'],
-    'MEDIA_PATH': os.environ['MEDIA_PATH'],
-    'SECRET_KEY': os.environ['SECRET_KEY'],
-    'LOG_PATH': os.environ.get('LOG_PATH', 'fluid.log'),
-})
-app.register_blueprint(root)
 
-Bower(app)
+def init_app():
+    """Returns an instance of the application."""
+    app = Flask(__name__)
+    app.config.update({
+        'CHROMECAST_IP': os.environ['CHROMECAST_IP'],
+        'MEDIA_PATH': os.environ['MEDIA_PATH'],
+        'SECRET_KEY': os.environ['SECRET_KEY'],
+        'LOG_PATH': os.environ.get('LOG_PATH', 'fluid.log'),
+    })
+    init_blueprints(app)
+    init_extensions(app)
+    init_logging(app)
+    return app
 
 
-def setup_logging(debug):
+def init_blueprints(app):
+    """Registers blueprints with the application."""
+    app.register_blueprint(root)
+
+
+def init_extensions(app):
+    """Registers extensions with the application."""
+    Bower(app)
+
+
+def init_logging(app):
     """Setup logging for the application."""
     logger = logging.getLogger()
 
@@ -36,7 +50,7 @@ def setup_logging(debug):
     # Setup the StreamHandler to log to stderr
     logging.basicConfig(level=logging.DEBUG, format=log_format)
 
-    if debug:  # Logging to stderr is sufficient when debugging
+    if app.debug:  # Logging to stderr is sufficient when debugging
         return
 
     # Setup a FileHandler to log to a configurable path
@@ -53,6 +67,5 @@ if __name__ == '__main__':
     parser.add_argument('--port', default='5000', type=int)
     args = parser.parse_args()
 
-    setup_logging(args.debug)
-
+    app = init_app()
     app.run(host=args.host, port=args.port, debug=args.debug)
