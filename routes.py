@@ -4,12 +4,12 @@ Routes for browsing movies and controlling the Chromecast media controller.
 from flask import (
     Blueprint, current_app, flash, redirect, render_template, url_for
 )
-from media import Media
+from lib.media import Media
 from werkzeug.urls import url_decode
+import lib.partial_file as partial_file
 import logging
 import mimetypes
 import os
-import partial_file
 import pychromecast
 import time
 
