@@ -3,3 +3,4 @@
 .env
 *.log
 static/tmp/*
+bower_components/
