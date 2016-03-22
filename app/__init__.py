@@ -4,7 +4,6 @@ Browse your local movies with IMDB data and stream them to a Chromecast.
 from flask import Flask
 from flask_bower import Bower
 from routes import root
-import argparse
 import logging
 import os
 import sys
@@ -58,14 +57,3 @@ def init_logging(app):
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--debug', action='store_true', default=False)
-    parser.add_argument('--host', default='127.0.0.1')
-    parser.add_argument('--port', default='5000', type=int)
-    args = parser.parse_args()
-
-    app = init_app()
-    app.run(host=args.host, port=args.port, debug=args.debug)
