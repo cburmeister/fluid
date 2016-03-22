@@ -8,12 +8,12 @@
             <p>Now Playing...</p>
             <h1>{{ now_playing.title }}</h1>
             <div class="buttons">
-                {% with rule = 'play' if is_paused else 'pause' %}
+                {% with rule = 'root.play' if is_paused else 'root.pause' %}
                     <a href="{{ url_for(rule) }}" class="btn"><i class="fa fa-{{ rule }}"></i></a>
                 {% endwith %}
-                <a href="{{ url_for('stop') }}" class="btn"><i class="fa fa-stop"></i></a>
-                <a href="{{ url_for('backward') }}" class="btn"><i class="fa fa-backward"></i></a>
-                <a href="{{ url_for('forward') }}" class="btn"><i class="fa fa-forward"></i></a>
+                <a href="{{ url_for('root.stop') }}" class="btn"><i class="fa fa-stop"></i></a>
+                <a href="{{ url_for('root.backward') }}" class="btn"><i class="fa fa-backward"></i></a>
+                <a href="{{ url_for('root.forward') }}" class="btn"><i class="fa fa-forward"></i></a>
             </div>
         </div>
     {% endif %}
