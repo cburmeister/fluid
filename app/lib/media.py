@@ -20,8 +20,8 @@ class Media(object):
         self.year = self.pieces.pop(-1)
         self.query = ' '.join(self.pieces)
 
-        self.data_path = 'static/tmp/{}.json'.format(self.filename)
-        self.poster_path = 'static/tmp/{}.jpg'.format(self.filename)
+        self.data_path = 'app/static/tmp/{}.json'.format(self.filename)
+        self.poster_path = 'app/static/tmp/{}.jpg'.format(self.filename)
 
         self.data = self.get_data()
         self.get_poster()
@@ -68,10 +68,12 @@ class Media(object):
             'filename': self.filename,
             'title': self.data['Title'],
             'urls': {
-                'poster': self.poster_path,
-                'cast': url_for('cast', filename=self.filename),
+                'cast': url_for('root.cast', filename=self.filename),
                 'media': url_for(
-                    'media', filename=self.filename, _external=True
+                    'root.media', filename=self.filename, _external=True
+                ),
+                'poster': url_for(
+                    'static', filename='tmp/{}.jpg'.format(self.filename)
                 ),
             }
         }

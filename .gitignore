@@ -2,5 +2,5 @@
 *.pyc
 .env
 *.log
-static/tmp/*
+app/static/tmp/
 bower_components/

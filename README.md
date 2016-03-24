@@ -4,7 +4,7 @@ fluid
 Browse your local movies with IMDB data and stream them to a Chromecast.
 
 
-![Fluid](static/images/sample.jpg)
+![Fluid](app/static/images/sample.jpg)
 
 > The [Open Movie Database API](http://www.omdbapi.com/) is used to fetch data
 > about your media files -- including the poster.

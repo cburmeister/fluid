@@ -5,5 +5,5 @@ init:
 
 clean:
 	find . -name '*.pyc' -delete
-	find static/tmp -name '*.jpg' -delete
-	find static/tmp -name '*.json' -delete
+	find app/static/tmp -name '*.jpg' -delete
+	find app/static/tmp -name '*.json' -delete

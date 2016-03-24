@@ -1,59 +1,25 @@
 """
-Browse your local movies with IMDB data and stream them to a Chromecast.
+Routes for browsing movies and controlling the Chromecast media controller.
 """
-from flask import Flask, flash, redirect, render_template, url_for
-from flask_bower import Bower
-from media import Media
+from flask import (
+    Blueprint, current_app, flash, redirect, render_template, url_for
+)
+from lib.media import Media
 from werkzeug.urls import url_decode
-import argparse
+import lib.partial_file as partial_file
 import logging
 import mimetypes
 import os
-import partial_file
 import pychromecast
-import sys
 import time
 
-reload(sys)
-sys.setdefaultencoding("utf-8")
-
-app = Flask(__name__)
-app.config.update({
-    'CHROMECAST_IP': os.environ['CHROMECAST_IP'],
-    'MEDIA_PATH': os.environ['MEDIA_PATH'],
-    'SECRET_KEY': os.environ['SECRET_KEY'],
-    'LOG_PATH': os.environ.get('LOG_PATH', 'fluid.log'),
-})
-
-Bower(app)
-
-
-def setup_logging(debug):
-    """Setup logging for the application."""
-    logger = logging.getLogger()
-
-    # Describe format of logs
-    log_format = str(
-        '%(asctime)s:%(levelname)s:%(module)s.py:%(lineno)d - %(message)s'
-    )
-
-    # Setup the StreamHandler to log to stderr
-    logging.basicConfig(level=logging.DEBUG, format=log_format)
-
-    if debug:  # Logging to stderr is sufficient when debugging
-        return
-
-    # Setup a FileHandler to log to a configurable path
-    file_handler = logging.FileHandler(app.config['LOG_PATH'])
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(log_format))
-    logger.addHandler(file_handler)
+root = Blueprint('root', __name__)
 
 
 def get_chromecast():
     """Returns a connection to the Chromecast."""
     try:
-        return pychromecast.Chromecast(app.config['CHROMECAST_IP'])
+        return pychromecast.Chromecast(current_app.config['CHROMECAST_IP'])
     except pychromecast.ChromecastConnectionError:
         logging.error('Chromecast not found.')
 
@@ -61,13 +27,13 @@ def get_chromecast():
 def get_media():
     """Returns all available media."""
     valid_ext = ('.mp4', '.mkv', '.avi', '.m2ts', 'm4v')
-    files = os.listdir(app.config['MEDIA_PATH'])
+    files = os.listdir(current_app.config['MEDIA_PATH'])
     files = filter(lambda x: x.endswith(valid_ext), files)
     files = [Media(x) for x in files]
     return [x.to_dict() for x in files if x.is_valid]
 
 
-@app.route('/')
+@root.route('/')
 def index():
     """Returns all media within the directory."""
     chromecast = get_chromecast()
@@ -100,12 +66,12 @@ def index():
     )
 
 
-@app.route('/cast/<filename>')
+@root.route('/cast/<filename>')
 def cast(filename):
     """Cast the filename to a chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     media = Media(filename).to_dict()
     mimetype, _ = mimetypes.guess_type(filename)
@@ -113,58 +79,58 @@ def cast(filename):
 
     time.sleep(6)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/play')
+@root.route('/play')
 def play():
     """Resume playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     time.sleep(1)
 
     chromecast.media_controller.play()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/pause')
+@root.route('/pause')
 def pause():
     """Pause playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     time.sleep(1)
 
     chromecast.media_controller.pause()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/stop')
+@root.route('/stop')
 def stop():
     """Stop playback of the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     time.sleep(1)
 
     chromecast.media_controller.stop()
     chromecast.quit_app()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/forward')
+@root.route('/forward')
 def forward():
     """Seek forward through the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     time.sleep(1)
 
@@ -175,15 +141,15 @@ def forward():
 
     time.sleep(6)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/backward')
+@root.route('/backward')
 def backward():
     """Seek backward through the media on the Chromecast."""
     chromecast = get_chromecast()
     if not chromecast:
-        return redirect(url_for('index'))
+        return redirect(url_for('root.index'))
 
     time.sleep(1)
 
@@ -194,23 +160,11 @@ def backward():
 
     time.sleep(6)
 
-    return redirect(url_for('index'))
+    return redirect(url_for('root.index'))
 
 
-@app.route('/media/<filename>')
+@root.route('/media/<filename>')
 def media(filename):
     """Serves a media file via the 206 partial protocol."""
-    path = '{}/{}'.format(app.config['MEDIA_PATH'], filename)
+    path = '{}/{}'.format(current_app.config['MEDIA_PATH'], filename)
     return partial_file.send(path)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--debug', action='store_true', default=False)
-    parser.add_argument('--host', default='127.0.0.1')
-    parser.add_argument('--port', default='5000', type=int)
-    args = parser.parse_args()
-
-    setup_logging(args.debug)
-
-    app.run(host=args.host, port=args.port, debug=args.debug)
