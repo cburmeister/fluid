@@ -2,7 +2,8 @@
 Routes for browsing movies and controlling the Chromecast media controller.
 """
 from flask import (
-    Blueprint, current_app, flash, redirect, render_template, url_for
+    Blueprint, current_app, flash, redirect, render_template, url_for,
+    safe_join
 )
 from lib.media import Media
 from werkzeug.urls import url_decode
@@ -166,5 +167,5 @@ def backward():
 @root.route('/media/<filename>')
 def media(filename):
     """Serves a media file via the 206 partial protocol."""
-    path = '{}/{}'.format(current_app.config['MEDIA_PATH'], filename)
+    path = safe_join(current_app.config['MEDIA_PATH'], filename)
     return partial_file.send(path)

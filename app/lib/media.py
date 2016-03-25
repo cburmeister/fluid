@@ -1,12 +1,14 @@
 """
 A class representing a media file.
 """
-from flask import url_for
+from flask import url_for, safe_join
 import json
 import omdb
 import os
 import requests
 import logging
+
+STATIC_TMP_PATH = 'app/static/tmp'
 
 
 class Media(object):
@@ -20,8 +22,8 @@ class Media(object):
         self.year = self.pieces.pop(-1)
         self.query = ' '.join(self.pieces)
 
-        self.data_path = 'app/static/tmp/{}.json'.format(self.filename)
-        self.poster_path = 'app/static/tmp/{}.jpg'.format(self.filename)
+        self.data_path = safe_join(STATIC_TMP_PATH, self.filename) + '.json'
+        self.poster_path = safe_join(STATIC_TMP_PATH, self.filename) + '.jpg'
 
         self.data = self.get_data()
         self.get_poster()
