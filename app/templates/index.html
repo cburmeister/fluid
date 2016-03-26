@@ -5,56 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Movies - Fluid</title>
     {% for url in [
-        url_for('static', filename='style.css'),
         url_for('bower.static', filename='components-font-awesome/css/font-awesome.min.css'),
         url_for('bower.static', filename='angular-loading-bar/build/loading-bar.min.css'),
+        url_for('bower.static', filename='bootstrap/dist/css/bootstrap.min.css'),
+        url_for('static', filename='style.css'),
     ] %}
         <link rel="stylesheet" type="text/css" href="{{ url }}" />
     {% endfor %}
     {% for url in [
         url_for('bower.static', filename='angular/angular.min.js'),
         url_for('bower.static', filename='angular-loading-bar/build/loading-bar.min.js'),
-        url_for('bower.static', filename='angular-lazy-img/release/angular-lazy-img.min.js'),
+        url_for('bower.static', filename='jquery/dist/jquery.min.js'),
+        url_for('bower.static', filename='tether/dist/js/tether.min.js'),
+        url_for('bower.static', filename='bootstrap/dist/js/bootstrap.min.js'),
         url_for('static', filename='app.js'),
     ] %}
         <script type="text/javascript" src="{{ url }}"></script>
     {% endfor %}
 </head>
 <body ng-app="fluid">
-    {% raw %}
-        <div ng-controller="ChromecastController">
-            <div ng-if="data">
-                <div ng-if="!data.chromecast">
-                    <div class="alert alert-error">Chromecast not found.</div>
-                </div>
-                <div ng-if="!data.chromecast.is_playing && !data.chromecast.is_paused">
-                    <div class="alert alert-info">Chromecast is idle.</div>
-                </div>
-                <div ng-if="data.chromecast.is_playing && !data.chromecast.now_playing">
-                    <div class="alert alert-info">Chromecast is currently busy.</div>
-                </div>
-                <div ng-if="data.chromecast.now_playing">
-                    <div id="now_playing">
-                        <p>Now Playing...</p>
-                        <h1>{{ data.chromecast.now_playing.title }}</h1>
-                        <div class="buttons">
-                            <a ng-if="data.chromecast.is_playing" ng-click="pause()" href="" class="btn"><i class="fa fa-pause"></i></a>
-                            <a ng-if="data.chromecast.is_paused" ng-click="play()" href="" class="btn"><i class="fa fa-play"></i></a>
-                            <a ng-click="stop()" href="" class="btn"><i class="fa fa-stop"></i></a>
-                            <a ng-click="backward()" href="" class="btn"><i class="fa fa-backward"></i></a>
-                            <a ng-click="forward()" href="" class="btn"><i class="fa fa-forward"></i></a>
+    <div class="container-fluid">
+        <div class="row">
+            {% raw %}
+                <div ng-controller="ChromecastController">
+                    <div ng-if="data">
+                        <div ng-if="!data.chromecast">
+                            <div class="alert alert-warning">Chromecast not found.</div>
+                        </div>
+                        <div ng-if="data.chromecast && !data.chromecast.is_playing && !data.chromecast.is_paused">
+                            <div class="alert alert-info">Chromecast is idle.</div>
+                        </div>
+                        <div ng-if="data.chromecast.is_playing && !data.chromecast.now_playing">
+                            <div class="alert alert-info">Chromecast is busy.</div>
+                        </div>
+                        <div ng-if="data.chromecast.now_playing">
+                            <div class="card card-inverse" style="background-color: #333; border-color: #333;">
+                                <div class="card-block">
+                                    <p class="card-text">Now Playing...</p>
+                                    <h3 class="card-title">{{ data.chromecast.now_playing.title }}</h3>
+                                    <p class="card-text">{{ data.chromecast.now_playing.plot }}</p>
+                                    <progress class="progress progress-striped" value="{{ data.chromecast.current_time }}" max="{{ data.chromecast.duration }}">
+                                    </progress>
+                                    <div class="buttons">
+                                        <a ng-if="data.chromecast.is_playing" ng-click="chromecast_command('/pause')" href="" class="btn btn-primary">
+                                            <i class="fa fa-pause"></i>
+                                        </a>
+                                        <a ng-if="data.chromecast.is_paused" ng-click="chromecast_command('/play')" href="" class="btn btn-primary">
+                                            <i class="fa fa-play"></i>
+                                        </a>
+                                        <a ng-click="chromecast_command('/stop')" href="" class="btn btn-primary"><i class="fa fa-stop"></i></a>
+                                        <a ng-click="chromecast_command('/backward')" href="" class="btn btn-primary"><i class="fa fa-backward"></i></a>
+                                        <a ng-click="chromecast_command('/forward')" href="" class="btn btn-primary"><i class="fa fa-forward"></i></a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {% endraw %}
         </div>
-        <div ng-controller="MediaController">
-            <div id="grid">
-                <a ng-repeat="item in data.media" ng-click="cast(item.filename)" href="">
-                    <img lazy-img="{{ item.urls.poster }}"></img>
-                </a>
-            </div>
+        <div class="row">
+            {% raw %}
+                <div ng-controller="MediaController">
+                    <div ng-if="data">
+                        <div class="card">
+                            <input type="text" class="form-control" ng-model="searchText" placeholder="Search by Title or Plot...">
+                        </div>
+                        <div class="card-columns">
+                            <div ng-repeat="item in data.media | filter:searchText" class="card">
+                                <a ng-click="cast(item.filename)" href="">
+                                    <img ng-src="{{ item.urls.poster }}" class="card-img-top"></img>
+                                </a>
+                                <div class="card-block">
+                                    <h5 class="card-title">{{ item.title }}</h5>
+                                    <p class="card-text">{{ item.plot }}</p>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">{{ item.released }}</li>
+                                    <li class="list-group-item">{{ item.genre }}</li>
+                                    <li class="list-group-item">{{ item.actors }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endraw %}
         </div>
-    {% endraw %}
+    </div>
 </body>
 </html>
