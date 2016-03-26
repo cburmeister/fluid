@@ -70,7 +70,7 @@ class Media(object):
             'urls': {
                 'cast': url_for('root.cast', filename=self.filename),
                 'media': url_for(
-                    'root.media', filename=self.filename, _external=True
+                    'root.serve_media', filename=self.filename, _external=True
                 ),
                 'poster': url_for(
                     'static', filename='tmp/{}.jpg'.format(self.filename)

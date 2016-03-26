@@ -3,6 +3,7 @@ A wrapper around pychromecast for interacting with a Chromecast device.
 """
 import pychromecast
 import logging
+import time
 
 
 class Chromecast(object):
@@ -20,6 +21,7 @@ class Chromecast(object):
             return None
 
         self.connection.wait()
+        time.sleep(1)
 
         return self
 

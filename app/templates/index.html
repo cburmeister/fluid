@@ -1,25 +1,60 @@
-{% extends "layout.html" %}
-
-{% block title %}Movies{% endblock %}
-
-{% block body %}
-    {% if now_playing %}
-        <div id="now_playing">
-            <p>Now Playing...</p>
-            <h1>{{ now_playing.title }}</h1>
-            <div class="buttons">
-                {% with endpoint = 'play' if is_paused else 'pause' %}
-                    <a href="{{ url_for('root.%s' % endpoint) }}" class="btn"><i class="fa fa-{{ endpoint }}"></i></a>
-                {% endwith %}
-                <a href="{{ url_for('root.stop') }}" class="btn"><i class="fa fa-stop"></i></a>
-                <a href="{{ url_for('root.backward') }}" class="btn"><i class="fa fa-backward"></i></a>
-                <a href="{{ url_for('root.forward') }}" class="btn"><i class="fa fa-forward"></i></a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movies - Fluid</title>
+    {% for url in [
+        url_for('static', filename='style.css'),
+        url_for('bower.static', filename='components-font-awesome/css/font-awesome.min.css'),
+        url_for('bower.static', filename='angular-loading-bar/build/loading-bar.min.css'),
+    ] %}
+        <link rel="stylesheet" type="text/css" href="{{ url }}" />
+    {% endfor %}
+    {% for url in [
+        url_for('bower.static', filename='angular/angular.min.js'),
+        url_for('bower.static', filename='angular-loading-bar/build/loading-bar.min.js'),
+        url_for('bower.static', filename='angular-lazy-img/release/angular-lazy-img.min.js'),
+        url_for('static', filename='app.js'),
+    ] %}
+        <script type="text/javascript" src="{{ url }}"></script>
+    {% endfor %}
+</head>
+<body ng-app="fluid">
+    {% raw %}
+        <div ng-controller="ChromecastController">
+            <div ng-if="data">
+                <div ng-if="!data.chromecast">
+                    <div class="alert alert-error">Chromecast not found.</div>
+                </div>
+                <div ng-if="!data.chromecast.is_playing && !data.chromecast.is_paused">
+                    <div class="alert alert-info">Chromecast is idle.</div>
+                </div>
+                <div ng-if="data.chromecast.is_playing && !data.chromecast.now_playing">
+                    <div class="alert alert-info">Chromecast is currently busy.</div>
+                </div>
+                <div ng-if="data.chromecast.now_playing">
+                    <div id="now_playing">
+                        <p>Now Playing...</p>
+                        <h1>{{ data.chromecast.now_playing.title }}</h1>
+                        <div class="buttons">
+                            <a ng-if="data.chromecast.is_playing" ng-click="pause()" href="" class="btn"><i class="fa fa-pause"></i></a>
+                            <a ng-if="data.chromecast.is_paused" ng-click="play()" href="" class="btn"><i class="fa fa-play"></i></a>
+                            <a ng-click="stop()" href="" class="btn"><i class="fa fa-stop"></i></a>
+                            <a ng-click="backward()" href="" class="btn"><i class="fa fa-backward"></i></a>
+                            <a ng-click="forward()" href="" class="btn"><i class="fa fa-forward"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    {% endif %}
-    <div id="grid">
-        {% for item in media %}
-            <a href="{{ item.urls.cast }}"><img src="{{ item.urls.poster }}"></img></a>
-        {% endfor %}
-    </div>
-{% endblock %}
+        <div ng-controller="MediaController">
+            <div id="grid">
+                <a ng-repeat="item in data.media" ng-click="cast(item.filename)" href="">
+                    <img lazy-img="{{ item.urls.poster }}"></img>
+                </a>
+            </div>
+        </div>
+    {% endraw %}
+</body>
+</html>

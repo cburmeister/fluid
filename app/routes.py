@@ -1,58 +1,59 @@
 """
 Routes for browsing movies and controlling the Chromecast media controller.
 """
-from flask import (
-    Blueprint, current_app, flash, redirect, render_template, url_for
-)
+from flask import Blueprint, current_app, render_template, jsonify
+from lib.chromecast import Chromecast
 from lib.media import Media
 from werkzeug.urls import url_decode
 import lib.partial_file as partial_file
 import mimetypes
 import os
-from lib.chromecast import Chromecast
-import time
 
 root = Blueprint('root', __name__)
 
 
-def get_media():
-    """Returns all available media."""
-    valid_ext = ('.mp4', '.mkv', '.avi', '.m2ts', 'm4v')
-    files = os.listdir(current_app.config['MEDIA_PATH'])
-    files = filter(lambda x: x.endswith(valid_ext), files)
-    files = [Media(x) for x in files]
-    return [x.to_dict() for x in files if x.is_valid]
-
-
 @root.route('/')
 def index():
-    """Returns all media within the directory."""
+    """Returns the page markup."""
+    return render_template('index.html')
+
+
+@root.route('/media')
+def media():
+    """Return all available media as JSON."""
+    valid_ext = ('.mp4', '.mkv', '.avi', '.m2ts', 'm4v')
+    media = os.listdir(current_app.config['MEDIA_PATH'])
+    media = filter(lambda x: x.endswith(valid_ext), media)
+    media = [Media(x) for x in media]
+    media = [x.to_dict() for x in media if x.is_valid]
+    return jsonify(media=media)
+
+
+@root.route('/chromecast/status')
+def chromecast_status():
+    """Return Chromecast status as JSON."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            flash('Chromecast not found.', 'error')
+            return jsonify(chromecast=None)
 
-        now_playing = None
-        is_paused = False
+        status = chromecast.connection.media_controller.status
+        args = {
+            'current_time': status.current_time,
+            'duration': status.duration,
+            'is_idle': status.player_is_idle,
+            'is_paused': status.player_is_paused,
+            'is_playing': status.player_is_playing,
+        }
+        try:
+            filename = (
+                status.title or
+                url_decode(status.content_id).keys()[0].split('/')[-1]
+            )
+            args['now_playing'] = Media(filename).to_dict()
+        except:
+            pass
 
-        if chromecast:
-            mc = chromecast.connection.media_controller
-
-            if mc.status.player_is_playing or mc.status.player_is_paused:
-                is_paused = mc.status.player_is_paused
-                filename = (
-                    mc.status.title or
-                    url_decode(mc.status.content_id).keys()[0].split('/')[-1]
-                )
-                now_playing = Media(filename).to_dict()
-            else:
-                flash('Chromecast is idle.', 'info')
-
-    return render_template(
-        'index.html',
-        is_paused=is_paused,
-        media=get_media(),
-        now_playing=now_playing,
-    )
+    return jsonify(chromecast=args)
 
 
 @root.route('/cast/<filename>')
@@ -60,14 +61,13 @@ def cast(filename):
     """Cast the filename to a chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         media = Media(filename).to_dict()
         mimetype, _ = mimetypes.guess_type(filename)
         chromecast.cast(media['urls']['media'], mimetype)
-        time.sleep(6)
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/play')
@@ -75,11 +75,11 @@ def play():
     """Resume playback of the media on the Chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         chromecast.play()
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/pause')
@@ -87,11 +87,11 @@ def pause():
     """Pause playback of the media on the Chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         chromecast.pause()
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/stop')
@@ -99,11 +99,11 @@ def stop():
     """Stop playback of the media on the Chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         chromecast.stop()
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/forward')
@@ -111,12 +111,11 @@ def forward():
     """Seek forward through the media on the Chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         chromecast.forward()
-        time.sleep(6)
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/backward')
@@ -124,16 +123,15 @@ def backward():
     """Seek backward through the media on the Chromecast."""
     with Chromecast(current_app.config['CHROMECAST_IP']) as chromecast:
         if not chromecast:
-            return redirect(url_for('root.index'))
+            return jsonify(chromecast=None)
 
         chromecast.backward()
-        time.sleep(6)
 
-    return redirect(url_for('root.index'))
+    return jsonify()
 
 
 @root.route('/media/<filename>')
-def media(filename):
+def serve_media(filename):
     """Serves a media file via the 206 partial protocol."""
     path = '{}/{}'.format(current_app.config['MEDIA_PATH'], filename)
     return partial_file.send(path)
