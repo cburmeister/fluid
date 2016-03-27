@@ -67,6 +67,10 @@ class Media(object):
         return {
             'filename': self.filename,
             'title': self.data['Title'],
+            'plot': self.data['Plot'],
+            'genre': self.data['Genre'],
+            'actors': self.data['Actors'],
+            'released': self.data['Released'],
             'urls': {
                 'cast': url_for('root.cast', filename=self.filename),
                 'media': url_for(
