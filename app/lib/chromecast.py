@@ -2,7 +2,6 @@
 A wrapper around pychromecast for interacting with a Chromecast device.
 """
 import pychromecast
-import logging
 import time
 
 
@@ -12,32 +11,29 @@ class Chromecast(object):
     def __init__(self, host):
         """Initialize the Chromecast."""
         self.host = host
-
-    def __enter__(self):
-        """Connects to the Chromecast."""
         self.connection = self.connect()
-        if not self.connection:
-            logging.warning('Chromecast not found.')
-            return None
 
-        self.connection.wait()
+    def connect(self):
+        """Returns a connection to the Chromecast."""
+        try:
+            connection = pychromecast.Chromecast(self.host)
+        except:
+            return
+
+        if not connection:
+            return
+
+        connection.wait()
         time.sleep(1)
 
-        return self
+        return connection
 
-    def __exit__(self, exc_type, exc_value, tb):
+    def disconnect(self):
         """Disconnects from the Chromecast."""
         if not self.connection:
             return
 
         self.connection.disconnect(blocking=False)
-
-    def connect(self):
-        """Returns a connection to the Chromecast."""
-        try:
-            return pychromecast.Chromecast(self.host)
-        except:
-            return None
 
     def cast(self, url, mimetype):
         """Cast the url to the chromecast."""

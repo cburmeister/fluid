@@ -1,7 +1,7 @@
 """
 Browse your local movies with IMDB data and stream them to a Chromecast.
 """
-from flask import Flask
+from flask import Flask, render_template
 from flask_bower import Bower
 from routes import root
 import logging
@@ -24,6 +24,12 @@ def init_app():
     init_blueprints(app)
     init_extensions(app)
     init_logging(app)
+
+    @app.route('/')
+    def index():
+        """Returns the page markup."""
+        return render_template('index.html')
+
     return app
 
 
