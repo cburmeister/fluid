@@ -21,7 +21,7 @@ def before_request():
 @root.after_request
 def after_request(response):
     """Disconnect from the chromecast before each response."""
-    if g.chromecast:
+    if g.chromecast.connection:
         g.chromecast.disconnect()
 
     return response
@@ -47,7 +47,7 @@ def media():
 @root.route('/chromecast/status')
 def chromecast_status():
     """Return Chromecast status as JSON."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     status = g.chromecast.connection.media_controller.status
@@ -73,7 +73,7 @@ def chromecast_status():
 @root.route('/cast/<filename>')
 def cast(filename):
     """Cast the filename to a chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     media = Media(filename).to_dict()
@@ -86,7 +86,7 @@ def cast(filename):
 @root.route('/play')
 def play():
     """Resume playback of the media on the Chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     g.chromecast.play()
@@ -97,7 +97,7 @@ def play():
 @root.route('/pause')
 def pause():
     """Pause playback of the media on the Chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     g.chromecast.pause()
@@ -108,7 +108,7 @@ def pause():
 @root.route('/stop')
 def stop():
     """Stop playback of the media on the Chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     g.chromecast.stop()
@@ -119,7 +119,7 @@ def stop():
 @root.route('/forward')
 def forward():
     """Seek forward through the media on the Chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     g.chromecast.forward()
@@ -130,7 +130,7 @@ def forward():
 @root.route('/backward')
 def backward():
     """Seek backward through the media on the Chromecast."""
-    if not g.chromecast:
+    if not g.chromecast.connection:
         return jsonify(chromecast=None)
 
     g.chromecast.backward()
