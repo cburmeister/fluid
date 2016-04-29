@@ -35,9 +35,9 @@ class Chromecast(object):
 
         self.connection.disconnect(blocking=False)
 
-    def cast(self, url, mimetype):
+    def cast(self, url, mimetype, title):
         """Cast the url to the chromecast."""
-        self.connection.media_controller.play_media(url, mimetype)
+        self.connection.media_controller.play_media(url, mimetype, title=title)
 
     def play(self):
         """Resume playback of the media on the Chromecast."""

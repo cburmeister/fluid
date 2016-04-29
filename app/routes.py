@@ -4,7 +4,6 @@ Routes for browsing movies and controlling the Chromecast media controller.
 from flask import Blueprint, current_app, render_template, jsonify, g
 from lib.chromecast import Chromecast
 from lib.media import Media
-from werkzeug.urls import url_decode
 import lib.partial_file as partial_file
 import mimetypes
 import os
@@ -59,11 +58,7 @@ def chromecast_status():
         'is_playing': status.player_is_playing,
     }
     try:
-        filename = (
-            status.title or
-            url_decode(status.content_id).keys()[0].split('/')[-1]
-        )
-        args['now_playing'] = Media(filename).to_dict()
+        args['now_playing'] = Media(status.title).to_dict()
     except:
         pass
 
@@ -78,7 +73,7 @@ def cast(filename):
 
     media = Media(filename).to_dict()
     mimetype, _ = mimetypes.guess_type(filename)
-    g.chromecast.cast(media['urls']['media'], mimetype)
+    g.chromecast.cast(media['urls']['media'], mimetype, filename)
 
     return jsonify()
 
